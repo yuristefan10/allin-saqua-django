@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python manage.py migrate && gunicorn allin_django.wsgi --log-file -"
+startCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn allin_django.wsgi --bind 0.0.0.0:$PORT --workers 2 --log-file -"
 healthcheckPath = "/"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
