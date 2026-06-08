@@ -1,17 +1,8 @@
 #!/bin/bash
 set -e
-
-echo "=== Rodando migrations ==="
+echo '=== Migrations ==='
 python manage.py migrate --noinput
-
-echo "=== Coletando arquivos estáticos ==="
+echo '=== Collectstatic ==='
 python manage.py collectstatic --noinput
-
-echo "=== Iniciando Gunicorn na porta $PORT ==="
-exec gunicorn allin_django.wsgi \
-    --bind "0.0.0.0:${PORT:-8000}" \
-    --workers 2 \
-    --timeout 120 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info
+echo '=== Gunicorn ==='
+exec gunicorn allin_django.wsgi --bind "0.0.0.0:${PORT:-8000}" --workers 2 --timeout 120 --access-logfile - --error-logfile -
