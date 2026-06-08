@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "bash start.sh"
+startCommand = "gunicorn allin_django.wsgi --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug"
 healthcheckPath = "/"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
