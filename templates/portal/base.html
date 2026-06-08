@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ALL IN SAQUA{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="main-header">
+    <div class="header-container">
+        <a href="{% url 'index' %}" class="logo-link">
+            <span class="logo-text">ALL IN SAQUA</span>
+        </a>
+        <nav class="main-nav">
+            <ul class="nav-list">
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li><a href="{% url 'turismo' %}">Pontos Turísticos</a></li>
+                <li class="dropdown">
+                    <a href="{% url 'lojas' %}">Estabelecimentos</a>
+                    <div class="dropdown-menu mega-menu">
+                        <div class="mega-menu-content">
+                            <div class="mega-menu-col">
+                                <h3>Gastronomia</h3>
+                                <ul>
+                                    <li><a href="{% url 'lojas' %}?categoria=Restaurante">Restaurantes</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-col">
+                                <h3>Hospedagem</h3>
+                                <ul>
+                                    <li><a href="{% url 'lojas' %}?categoria=Pousada">Pousadas</a></li>
+                                </ul>
+                            </div>
+                            <div class="mega-menu-col">
+                                <h3>Compras & Serviços</h3>
+                                <ul>
+                                    <li><a href="{% url 'lojas' %}?categoria=Loja">Lojas</a></li>
+                                    <li><a href="{% url 'lojas' %}?categoria=Serviço">Serviços</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="{% url 'servicos' %}">Serviços</a></li>
+                <li><a href="{% url 'sobre' %}">Sobre</a></li>
+                <li><a href="{% url 'contato' %}">Contato</a></li>
+            </ul>
+        </nav>
+        <div class="header-actions">
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <a href="#" class="nav-button dropdown-toggle">
+                        {% if user.is_admin_portal %}Painel Admin{% else %}{{ user.first_name }}{% endif %}
+                    </a>
+                    <div class="dropdown-menu admin-menu">
+                        <ul>
+                            {% if user.is_admin_portal %}
+                                <li><a href="{% url 'admin:index' %}">Painel Administrativo</a></li>
+                                <hr>
+                            {% endif %}
+                            <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
+                            <li><a href="{% url 'consultar_reservas' %}">Minhas Reservas</a></li>
+                            <li><a href="{% url 'logout' %}">Sair</a></li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-button">Login</a>
+                <a href="{% url 'cadastro' %}" class="nav-button nav-button-outline">Cadastre-se</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    {% if messages %}
+        <div class="messages-container">
+            {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-col">
+            <h3>ALL IN SAQUA</h3>
+            <p>Seu guia completo de turismo e comércio em Saquarema, RJ.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Links rápidos</h4>
+            <ul>
+                <li><a href="{% url 'turismo' %}">Pontos Turísticos</a></li>
+                <li><a href="{% url 'lojas' %}">Estabelecimentos</a></li>
+                <li><a href="{% url 'sobre' %}">Sobre</a></li>
+                <li><a href="{% url 'contato' %}">Contato</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Contato</h4>
+            <p>Saquarema, RJ — Brasil</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 All In Saqua. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

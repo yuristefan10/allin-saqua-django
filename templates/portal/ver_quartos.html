@@ -1,0 +1,28 @@
+{% extends 'portal/base.html' %}
+{% block title %}Quartos — {{ estab.nome }}{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <a href="{% url 'detalhe_estabelecimento' estab.pk %}" class="back-link">&larr; Voltar para {{ estab.nome }}</a>
+    <h1 class="page-title">Quartos disponíveis</h1>
+    <div class="cards-grid">
+        {% for quarto in quartos %}
+        <div class="card">
+            {% with quarto.imagens.first as img %}
+                {% if img %}<img src="{{ img.imagem.url }}" alt="{{ quarto.nome_quarto }}">
+                {% else %}<div class="img-placeholder"></div>{% endif %}
+            {% endwith %}
+            <div class="card-body">
+                <h3>{{ quarto.nome_quarto }}</h3>
+                <p>{{ quarto.descricao }}</p>
+                <p class="info-item">👥 Capacidade: {{ quarto.capacidade }} pessoa(s)</p>
+                <p class="preco">R$ {{ quarto.preco_diaria }}<span>/noite</span></p>
+                <a href="{% url 'detalhe_quarto' quarto.pk %}" class="botao">Ver quarto</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="sem-conteudo">Nenhum quarto cadastrado.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'portal/base.html' %}
+{% block title %}Pontos Turísticos — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Pontos Turísticos</h1>
+    <div class="cards-grid">
+        {% for ponto in pontos %}
+        <div class="card">
+            {% if ponto.imagem %}
+                <img src="{{ ponto.imagem.url }}" alt="{{ ponto.titulo }}">
+            {% else %}
+                <div class="img-placeholder"></div>
+            {% endif %}
+            <div class="card-body">
+                <h3>{{ ponto.titulo }}</h3>
+                <p>{{ ponto.descricao }}</p>
+                <a href="{% url 'detalhe_ponto' ponto.pk %}" class="botao">Ver mais</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="sem-conteudo">Nenhum ponto turístico cadastrado ainda.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

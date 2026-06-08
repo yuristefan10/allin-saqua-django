@@ -1,0 +1,23 @@
+{% extends 'portal/base.html' %}
+{% block title %}Serviços — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Serviços em Saquarema</h1>
+    <div class="cards-grid">
+        {% for estab in estabelecimentos %}
+        <div class="card">
+            {% if estab.imagem %}<img src="{{ estab.imagem.url }}" alt="{{ estab.nome }}">
+            {% else %}<div class="img-placeholder"></div>{% endif %}
+            <div class="card-body">
+                <h3>{{ estab.nome }}</h3>
+                <p>{{ estab.descricao }}</p>
+                <a href="{% url 'detalhe_estabelecimento' estab.pk %}" class="botao">Ver detalhes</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="sem-conteudo">Nenhum serviço cadastrado ainda.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

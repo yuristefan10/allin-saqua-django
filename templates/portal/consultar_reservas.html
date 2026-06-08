@@ -1,0 +1,40 @@
+{% extends 'portal/base.html' %}
+{% block title %}Minhas Reservas — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Minhas Reservas</h1>
+    {% if reservas %}
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Quarto</th>
+                <th>Estabelecimento</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Hóspedes</th>
+                <th>Total</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+                <td>{{ r.pk }}</td>
+                <td>{{ r.quarto.nome_quarto }}</td>
+                <td>{{ r.quarto.estabelecimento.nome }}</td>
+                <td>{{ r.data_checkin|date:"d/m/Y" }}</td>
+                <td>{{ r.data_checkout|date:"d/m/Y" }}</td>
+                <td>{{ r.numero_hospedes }}</td>
+                <td>R$ {{ r.valor_total }}</td>
+                <td><span class="badge badge-{{ r.status|lower }}">{{ r.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="sem-conteudo">Você ainda não tem reservas. <a href="{% url 'lojas' %}">Explore hospedagens</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

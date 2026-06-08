@@ -1,0 +1,23 @@
+{% extends 'portal/base.html' %}
+{% block title %}Meu Perfil — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Meu Perfil</h1>
+    <div class="perfil-card">
+        <div class="perfil-avatar">{{ user.first_name|first|upper }}</div>
+        <div class="perfil-info">
+            <p><strong>Nome:</strong> {{ user.get_full_name }}</p>
+            <p><strong>Usuário:</strong> {{ user.username }}</p>
+            <p><strong>E-mail:</strong> {{ user.email }}</p>
+            <p><strong>CPF:</strong> {{ user.cpf }}</p>
+            {% if user.telefone %}<p><strong>Telefone:</strong> {{ user.telefone }}</p>{% endif %}
+            <p><strong>Tipo de conta:</strong> {{ user.get_tipo_display }}</p>
+        </div>
+        <div class="perfil-acoes">
+            <a href="{% url 'consultar_reservas' %}" class="botao">Minhas Reservas</a>
+            <a href="{% url 'logout' %}" class="botao botao-outline">Sair</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

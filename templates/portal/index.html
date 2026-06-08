@@ -1,0 +1,92 @@
+{% extends 'portal/base.html' %}
+{% load static %}
+
+{% block title %}Home — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Bem-vindo a Saquarema</h1>
+        <p>Descubra os melhores pontos turísticos, hospedagens e comércios da Cidade do Surf.</p>
+        <a href="{% url 'turismo' %}" class="botao">Explorar</a>
+    </div>
+</section>
+
+<div class="linha container">
+    <section class="home-grid">
+        <div class="sidebar">
+            <h3>Mais Procurados</h3>
+            <ul class="sem-marcador">
+                <li><a href="{% url 'turismo' %}">Igreja N. Sra. de Nazareth</a></li>
+                <li><a href="{% url 'turismo' %}">Mirante do Morro da Cruz</a></li>
+                <li><a href="{% url 'turismo' %}">Rampa do Voo Livre</a></li>
+                <li><a href="{% url 'turismo' %}">Gruta N. Sra. de Lourdes</a></li>
+                <li><a href="{% url 'turismo' %}">Praia de Itaúna</a></li>
+            </ul>
+            <a href="{% url 'turismo' %}" class="botao">Ver todos &raquo;</a>
+        </div>
+        <div class="home-main">
+            <h2>O QUE ESTÁ ROLANDO</h2>
+            {% if eventos %}
+                {% with eventos.0 as evento %}
+                <div class="evento-destaque">
+                    {% if evento.imagem %}
+                        <img src="{{ evento.imagem.url }}" alt="{{ evento.titulo }}" class="image-home">
+                    {% endif %}
+                    <h3>{{ evento.titulo }}</h3>
+                    <p>{{ evento.descricao_curta }}</p>
+                    {% if evento.link_externo %}
+                        <a href="{{ evento.link_externo }}" target="_blank" class="botao-link">Saiba mais &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endwith %}
+            {% else %}
+                <p class="sem-conteudo">Nenhum evento no momento.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+{% if destaques %}
+<div class="destaques">
+    <div class="container">
+        <h2 style="text-align:center;">LOJAS EM DESTAQUE</h2>
+        <div class="swiper lojas-carrossel">
+            <div class="swiper-wrapper">
+                {% for loja in destaques %}
+                <div class="swiper-slide">
+                    <a href="{% url 'detalhe_estabelecimento' loja.pk %}" class="loja-card">
+                        {% if loja.imagem %}
+                            <img src="{{ loja.imagem.url }}" alt="{{ loja.nome }}">
+                        {% else %}
+                            <div class="img-placeholder"></div>
+                        {% endif %}
+                        <h3>{{ loja.nome }}</h3>
+                        <span class="categoria-badge">{{ loja.categoria }}</span>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    new Swiper('.lojas-carrossel', {
+        loop: true,
+        spaceBetween: 20,
+        pagination: { el: '.swiper-pagination', clickable: true },
+        breakpoints: {
+            640: { slidesPerView: 2 },
+            960: { slidesPerView: 4 },
+            1200: { slidesPerView: 5 },
+        }
+    });
+});
+</script>
+{% endblock %}

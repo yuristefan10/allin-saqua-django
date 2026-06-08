@@ -1,0 +1,32 @@
+{% extends 'portal/base.html' %}
+{% block title %}Contato — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content form-page">
+    <h1 class="page-title">Contato</h1>
+    <div class="contato-grid">
+        <div class="contato-info">
+            <h3>Fale conosco</h3>
+            <p>📍 Saquarema, RJ — Brasil</p>
+            <p>📧 contato@allinsaqua.com.br</p>
+            <p>📞 (22) 0000-0000</p>
+        </div>
+        <form class="form-card" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" name="nome" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Mensagem</label>
+                <textarea name="mensagem" rows="5" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="botao botao-grande">Enviar mensagem</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

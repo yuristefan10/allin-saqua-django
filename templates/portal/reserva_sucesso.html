@@ -1,0 +1,22 @@
+{% extends 'portal/base.html' %}
+{% block title %}Reserva Confirmada — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content text-center">
+    <div class="sucesso-card">
+        <div class="sucesso-icon">✅</div>
+        <h1>Reserva Realizada!</h1>
+        <p>Sua reserva foi enviada e está <strong>Pendente de confirmação</strong>.</p>
+        <div class="reserva-resumo">
+            <p><strong>Quarto:</strong> {{ reserva.quarto.nome_quarto }}</p>
+            <p><strong>Estabelecimento:</strong> {{ reserva.quarto.estabelecimento.nome }}</p>
+            <p><strong>Check-in:</strong> {{ reserva.data_checkin|date:"d/m/Y" }}</p>
+            <p><strong>Check-out:</strong> {{ reserva.data_checkout|date:"d/m/Y" }}</p>
+            <p><strong>Hóspedes:</strong> {{ reserva.numero_hospedes }}</p>
+            <p><strong>Total estimado:</strong> R$ {{ reserva.valor_total }}</p>
+        </div>
+        <a href="{% url 'consultar_reservas' %}" class="botao">Ver minhas reservas</a>
+        <a href="{% url 'index' %}" class="botao-link">Voltar ao início</a>
+    </div>
+</div>
+{% endblock %}

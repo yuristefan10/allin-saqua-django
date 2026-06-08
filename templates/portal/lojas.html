@@ -1,0 +1,34 @@
+{% extends 'portal/base.html' %}
+{% block title %}Estabelecimentos — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Estabelecimentos</h1>
+    <div class="filtro-bar">
+        <a href="{% url 'lojas' %}" class="filtro-btn {% if not categoria_atual %}ativo{% endif %}">Todos</a>
+        {% for val, label in categorias %}
+            <a href="{% url 'lojas' %}?categoria={{ val }}" class="filtro-btn {% if categoria_atual == val %}ativo{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    <div class="cards-grid">
+        {% for estab in estabelecimentos %}
+        <div class="card">
+            {% if estab.imagem %}
+                <img src="{{ estab.imagem.url }}" alt="{{ estab.nome }}">
+            {% else %}
+                <div class="img-placeholder"></div>
+            {% endif %}
+            <div class="card-body">
+                <span class="categoria-badge">{{ estab.categoria }}</span>
+                <h3>{{ estab.nome }}</h3>
+                <p>{{ estab.descricao }}</p>
+                {% if estab.telefone %}<p class="info-item">📞 {{ estab.telefone }}</p>{% endif %}
+                <a href="{% url 'detalhe_estabelecimento' estab.pk %}" class="botao">Ver detalhes</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="sem-conteudo">Nenhum estabelecimento encontrado.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

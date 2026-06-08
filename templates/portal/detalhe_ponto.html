@@ -1,0 +1,21 @@
+{% extends 'portal/base.html' %}
+{% block title %}{{ ponto.titulo }} — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <a href="{% url 'turismo' %}" class="back-link">&larr; Voltar</a>
+    <div class="detalhe-hero">
+        {% if ponto.imagem %}
+            <img src="{{ ponto.imagem.url }}" alt="{{ ponto.titulo }}" class="detalhe-img">
+        {% endif %}
+        <h1>{{ ponto.titulo }}</h1>
+        <p class="subtitulo">{{ ponto.descricao }}</p>
+    </div>
+    <div class="detalhe-corpo">
+        <div class="rich-text">{{ ponto.sobre|linebreaks }}</div>
+        {% if ponto.link %}
+            <a href="{{ ponto.link }}" target="_blank" class="botao">Ver no mapa &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

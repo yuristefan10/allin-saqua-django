@@ -1,0 +1,50 @@
+{% extends 'portal/base.html' %}
+{% block title %}{{ estab.nome }} — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <a href="{% url 'lojas' %}" class="back-link">&larr; Voltar</a>
+    <div class="detalhe-hero">
+        {% if estab.imagem %}
+            <img src="{{ estab.imagem.url }}" alt="{{ estab.nome }}" class="detalhe-img">
+        {% endif %}
+        <h1>{{ estab.nome }}</h1>
+        <span class="categoria-badge">{{ estab.categoria }}</span>
+    </div>
+    <div class="detalhe-corpo">
+        <p>{{ estab.descricao }}</p>
+        {% if estab.endereco %}<p class="info-item">📍 {{ estab.endereco }}</p>{% endif %}
+        {% if estab.telefone %}<p class="info-item">📞 {{ estab.telefone }}</p>{% endif %}
+        {% if estab.quartos.exists %}
+            <a href="{% url 'ver_quartos' estab.pk %}" class="botao">Ver quartos disponíveis</a>
+        {% endif %}
+    </div>
+
+    <div class="comentarios-section">
+        <h2>Avaliações</h2>
+        {% for c in comentarios %}
+        <div class="comentario-card">
+            <strong>{{ c.usuario.get_full_name }}</strong>
+            <span class="estrelas">{% for i in "12345" %}{% if forloop.counter <= c.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
+            <p>{{ c.comentario }}</p>
+            <small>{{ c.data_comentario|date:"d/m/Y" }}</small>
+        </div>
+        {% empty %}
+        <p class="sem-conteudo">Nenhuma avaliação aprovada ainda.</p>
+        {% endfor %}
+
+        <div class="comentario-form">
+            <h3>Deixe sua avaliação</h3>
+            {% if user.is_authenticated %}
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="botao">Enviar avaliação</button>
+            </form>
+            {% else %}
+            <p><a href="{% url 'login' %}">Faça login</a> para avaliar.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

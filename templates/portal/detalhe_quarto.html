@@ -1,0 +1,42 @@
+{% extends 'portal/base.html' %}
+{% block title %}{{ quarto.nome_quarto }} — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <a href="{% url 'ver_quartos' quarto.estabelecimento.pk %}" class="back-link">&larr; Voltar</a>
+    <h1 class="page-title">{{ quarto.nome_quarto }}</h1>
+    <p class="subtitulo">{{ quarto.estabelecimento.nome }}</p>
+
+    {% if quarto.imagens.all %}
+    <div class="swiper quarto-swiper">
+        <div class="swiper-wrapper">
+            {% for img in quarto.imagens.all %}
+            <div class="swiper-slide">
+                <img src="{{ img.imagem.url }}" alt="{{ quarto.nome_quarto }}">
+            </div>
+            {% endfor %}
+        </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+    </div>
+    {% endif %}
+
+    <div class="quarto-info">
+        <p>{{ quarto.descricao }}</p>
+        <p class="info-item">👥 Capacidade: {{ quarto.capacidade }} pessoa(s)</p>
+        <p class="preco">R$ {{ quarto.preco_diaria }}<span>/noite</span></p>
+        <a href="{% url 'fazer_reserva' quarto.pk %}" class="botao botao-grande">Reservar agora</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Swiper('.quarto-swiper', {
+    loop: true,
+    pagination: { el: '.swiper-pagination', clickable: true },
+    navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+});
+</script>
+{% endblock %}

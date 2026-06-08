@@ -1,0 +1,24 @@
+{% extends 'portal/base.html' %}
+{% block title %}Reservar — {{ quarto.nome_quarto }}{% endblock %}
+
+{% block content %}
+<div class="container page-content form-page">
+    <a href="{% url 'detalhe_quarto' quarto.pk %}" class="back-link">&larr; Voltar</a>
+    <h1 class="page-title">Reservar: {{ quarto.nome_quarto }}</h1>
+    <p class="subtitulo">{{ quarto.estabelecimento.nome }} &mdash; R$ {{ quarto.preco_diaria }}/noite</p>
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        {% if form.non_field_errors %}
+            <p class="field-error">{{ form.non_field_errors.0 }}</p>
+        {% endif %}
+        <button type="submit" class="botao botao-grande">Confirmar Reserva</button>
+    </form>
+</div>
+{% endblock %}
