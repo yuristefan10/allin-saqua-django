@@ -1,9 +1,8 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
 
 [deploy]
-startCommand = "python manage.py migrate --noinput && gunicorn allin_django.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level debug"
+startCommand = "bash start.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
