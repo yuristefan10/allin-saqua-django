@@ -1,21 +1,203 @@
 {% extends 'portal/base.html' %}
+{% load static %}
 {% block title %}{{ ponto.titulo }} — ALL IN SAQUA{% endblock %}
+
+{% block extra_css %}
+{% if ponto.tour_tipo == 'pannellum' %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+<style>
+  #panorama { width: 100%; height: 500px; border-radius: 12px; overflow: hidden; }
+  .cenas-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .cena-btn { padding: 8px 16px; border-radius: 20px; border: 2px solid var(--azul); background: transparent; color: var(--azul); cursor: pointer; font-size: .85rem; font-weight: 600; transition: all .2s; }
+  .cena-btn.ativo, .cena-btn:hover { background: var(--azul); color: #fff; }
+</style>
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container page-content">
     <a href="{% url 'turismo' %}" class="back-link">&larr; Voltar</a>
+
     <div class="detalhe-hero">
         {% if ponto.imagem %}
             <img src="{{ ponto.imagem.url }}" alt="{{ ponto.titulo }}" class="detalhe-img">
         {% endif %}
-        <h1>{{ ponto.titulo }}</h1>
+        <div class="titulo-row">
+            <h1>{{ ponto.titulo }}</h1>
+            {% if ponto.nivel_acessibilidade != 'nao_avaliado' %}
+            <span class="badge-acessibilidade nivel-{{ ponto.nivel_acessibilidade }}">
+                ♿ {{ ponto.get_nivel_acessibilidade_display }}
+            </span>
+            {% endif %}
+        </div>
         <p class="subtitulo">{{ ponto.descricao }}</p>
     </div>
+
+    {# ── Tour 360° ── #}
+    {% if ponto.tour_tipo == 'pannellum' %}
+    <div class="tour-section">
+        <h2>🌐 Tour Virtual 360°</h2>
+
+        {% with fotos=ponto.fotos_360.all %}
+        {% if fotos %}
+        <div class="cenas-bar" id="cenas-bar">
+            {% for foto in fotos %}
+            <button class="cena-btn {% if forloop.first %}ativo{% endif %}"
+                    onclick="trocarCena('{{ foto.foto.url }}', this)">
+                {{ foto.titulo }}
+            </button>
+            {% endfor %}
+        </div>
+        <div id="panorama"></div>
+        {% elif ponto.tour_foto_360 %}
+        <div id="panorama"></div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    {% elif ponto.tour_tipo == 'streetview' and ponto.tour_streetview_url %}
+    <div class="tour-section">
+        <h2>🌐 Tour Virtual 360°</h2>
+        <div class="streetview-container">
+            <iframe src="{{ ponto.tour_streetview_url }}"
+                    width="100%" height="500" style="border:0; border-radius:12px;"
+                    allowfullscreen loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Descrição ── #}
     <div class="detalhe-corpo">
         <div class="rich-text">{{ ponto.sobre|linebreaks }}</div>
         {% if ponto.link %}
             <a href="{{ ponto.link }}" target="_blank" class="botao">Ver no mapa &raquo;</a>
         {% endif %}
     </div>
+
+    {# ── Acessibilidade ── #}
+    <div class="acessibilidade-section">
+        <h2>♿ Acessibilidade</h2>
+        <div class="acessibilidade-card">
+            <div class="nivel-row">
+                <span class="label-nivel">Nível:</span>
+                <span class="badge-acessibilidade nivel-{{ ponto.nivel_acessibilidade }}">
+                    {{ ponto.get_nivel_acessibilidade_display }}
+                </span>
+                {% if media_nota_acesso %}
+                <span class="media-acesso">⭐ {{ media_nota_acesso|floatformat:1 }} pelos visitantes</span>
+                {% endif %}
+            </div>
+
+            {% with recursos=ponto.recursos_lista %}
+            {% if recursos %}
+            <div class="recursos-grid">
+                {% for icone, nome in recursos %}
+                <div class="recurso-item">
+                    <span class="recurso-icone">{{ icone }}</span>
+                    <span class="recurso-nome">{{ nome }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% if ponto.obs_acessibilidade %}
+            <p class="obs-acessibilidade">📝 {{ ponto.obs_acessibilidade }}</p>
+            {% endif %}
+        </div>
+
+        {# Avaliações de acessibilidade #}
+        <div class="avaliacoes-acesso">
+            <h3>Avaliações de Acessibilidade pelos Visitantes</h3>
+            {% for av in avaliacoes_acesso %}
+            <div class="comentario-card">
+                <strong>{{ av.usuario.get_full_name }}</strong>
+                <span class="estrelas">{% for i in "12345" %}{% if forloop.counter <= av.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
+                {% if av.comentario %}<p>{{ av.comentario }}</p>{% endif %}
+                <small>{{ av.data|date:"d/m/Y" }}</small>
+            </div>
+            {% empty %}
+            <p class="sem-conteudo">Nenhuma avaliação de acessibilidade ainda.</p>
+            {% endfor %}
+
+            {% if user.is_authenticated %}
+            <div class="comentario-form">
+                <h4>Avaliar Acessibilidade</h4>
+                <form method="post" action="{% url 'avaliar_acessibilidade_ponto' ponto.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Nota de acessibilidade</label>
+                        <select name="nota" class="form-control" required>
+                            <option value="">Selecione...</option>
+                            {% for i in "12345" %}
+                            <option value="{{ forloop.counter }}">{{ forloop.counter }} ★ — {% if forloop.counter == 1 %}Inacessível{% elif forloop.counter == 2 %}Muito difícil{% elif forloop.counter == 3 %}Regular{% elif forloop.counter == 4 %}Bom{% else %}Excelente{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comentário (opcional)</label>
+                        <textarea name="comentario" rows="3" class="form-control" placeholder="Descreva sua experiência de acessibilidade..."></textarea>
+                    </div>
+                    <button type="submit" class="botao">Enviar avaliação</button>
+                </form>
+            </div>
+            {% else %}
+            <p><a href="{% url 'login' %}">Faça login</a> para avaliar a acessibilidade.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if ponto.tour_tipo == 'pannellum' %}
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+<script>
+{% with fotos=ponto.fotos_360.all %}
+{% if fotos %}
+  var primeiraFoto = "{{ fotos.0.foto.url }}";
+{% elif ponto.tour_foto_360 %}
+  var primeiraFoto = "{{ ponto.tour_foto_360.url }}";
+{% else %}
+  var primeiraFoto = null;
+{% endif %}
+{% endwith %}
+
+var viewer = null;
+
+function iniciarViewer(url) {
+    if (viewer) { viewer.destroy(); }
+    viewer = pannellum.viewer('panorama', {
+        type: 'equirectangular',
+        panorama: url,
+        autoLoad: true,
+        autoRotate: -2,
+        compass: true,
+        showZoomCtrl: true,
+        showFullscreenCtrl: true,
+        strings: {
+            loadButtonLabel: 'Clique para carregar o tour',
+            loadingLabel: 'Carregando...',
+            bylineLabel: 'por',
+            noPanoramaError: 'Nenhuma panorâmica encontrada.',
+            fileAccessError: 'A panorâmica %s não pôde ser carregada.',
+            malformedURLError: 'URL mal formada.',
+            iOS8WebGLError: 'WebGL não suportado neste dispositivo.',
+            genericWebGLError: 'WebGL não suportado neste navegador.',
+            textureSizeError: 'A imagem é muito grande (%spx). O máximo suportado é %spx.',
+            unknownError: 'Erro desconhecido.',
+        }
+    });
+}
+
+if (primeiraFoto) { iniciarViewer(primeiraFoto); }
+
+function trocarCena(url, btn) {
+    document.querySelectorAll('.cena-btn').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    iniciarViewer(url);
+}
+</script>
+{% endif %}
 {% endblock %}

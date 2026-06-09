@@ -4,6 +4,16 @@
 {% block content %}
 <div class="container page-content">
     <h1 class="page-title">Pontos Turísticos</h1>
+
+    <div class="filtro-bar">
+        <a href="{% url 'turismo' %}" class="filtro-btn {% if not nivel_atual %}ativo{% endif %}">Todos</a>
+        {% for val, label in niveis %}
+        <a href="{% url 'turismo' %}?nivel={{ val }}" class="filtro-btn filtro-acesso nivel-{{ val }} {% if nivel_atual == val %}ativo{% endif %}">
+            ♿ {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+
     <div class="cards-grid">
         {% for ponto in pontos %}
         <div class="card">
@@ -13,13 +23,31 @@
                 <div class="img-placeholder"></div>
             {% endif %}
             <div class="card-body">
+                <div class="card-badges">
+                    {% if ponto.nivel_acessibilidade != 'nao_avaliado' %}
+                    <span class="badge-acessibilidade nivel-{{ ponto.nivel_acessibilidade }}">♿ {{ ponto.get_nivel_acessibilidade_display }}</span>
+                    {% endif %}
+                    {% if ponto.tem_tour %}
+                    <span class="badge-tour">🌐 Tour 360°</span>
+                    {% endif %}
+                </div>
                 <h3>{{ ponto.titulo }}</h3>
                 <p>{{ ponto.descricao }}</p>
+                {% with recursos=ponto.recursos_lista %}
+                {% if recursos %}
+                <div class="recursos-mini">
+                    {% for icone, nome in recursos|slice:":4" %}
+                    <span title="{{ nome }}">{{ icone }}</span>
+                    {% endfor %}
+                    {% if recursos|length > 4 %}<span class="mais-recursos">+{{ recursos|length|add:"-4" }}</span>{% endif %}
+                </div>
+                {% endif %}
+                {% endwith %}
                 <a href="{% url 'detalhe_ponto' ponto.pk %}" class="botao">Ver mais</a>
             </div>
         </div>
         {% empty %}
-        <p class="sem-conteudo">Nenhum ponto turístico cadastrado ainda.</p>
+        <p class="sem-conteudo">Nenhum ponto turístico encontrado.</p>
         {% endfor %}
     </div>
 </div>

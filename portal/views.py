@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 
-from .models import Estabelecimento, PontoTuristico, Quarto, Reserva, Evento, Comentario
+from django.db.models import Avg
+from .models import Estabelecimento, PontoTuristico, Quarto, Reserva, Evento, Comentario, AvaliacaoAcessibilidade
 from .forms import CadastroForm, LoginForm, ReservaForm, ComentarioForm
 
 
@@ -32,13 +33,42 @@ def servicos(request):
 # ── Pontos turísticos ─────────────────────────────────────────────────────────
 
 def turismo(request):
+    nivel = request.GET.get('nivel', '')
     pontos = PontoTuristico.objects.order_by('-criado_em')
-    return render(request, 'portal/turismo.html', {'pontos': pontos})
+    if nivel:
+        pontos = pontos.filter(nivel_acessibilidade=nivel)
+    niveis = [('basico', 'Básico'), ('intermediario', 'Intermediário'), ('completo', 'Completo')]
+    return render(request, 'portal/turismo.html', {
+        'pontos': pontos,
+        'niveis': niveis,
+        'nivel_atual': nivel,
+    })
 
 
 def detalhe_ponto(request, pk):
     ponto = get_object_or_404(PontoTuristico, pk=pk)
-    return render(request, 'portal/detalhe_ponto.html', {'ponto': ponto})
+    avaliacoes_acesso = AvaliacaoAcessibilidade.objects.filter(ponto=ponto).order_by('-data')
+    media_nota_acesso = avaliacoes_acesso.aggregate(m=Avg('nota'))['m']
+    return render(request, 'portal/detalhe_ponto.html', {
+        'ponto': ponto,
+        'avaliacoes_acesso': avaliacoes_acesso,
+        'media_nota_acesso': media_nota_acesso,
+    })
+
+
+@login_required
+def avaliar_acessibilidade_ponto(request, pk):
+    ponto = get_object_or_404(PontoTuristico, pk=pk)
+    if request.method == 'POST':
+        nota = request.POST.get('nota')
+        comentario = request.POST.get('comentario', '')
+        if nota:
+            AvaliacaoAcessibilidade.objects.update_or_create(
+                usuario=request.user, ponto=ponto,
+                defaults={'nota': nota, 'comentario': comentario, 'tipo_local': 'ponto'}
+            )
+            messages.success(request, 'Avaliação de acessibilidade enviada!')
+    return redirect('detalhe_ponto', pk=pk)
 
 
 # ── Estabelecimentos ──────────────────────────────────────────────────────────
