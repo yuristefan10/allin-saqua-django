@@ -1,4 +1,4 @@
-{% load static %}
+{% load static %}{% load tz %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -54,6 +54,7 @@
                 <li><a href="{% url 'contato' %}">Contato</a></li>
             </ul>
         </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
         <div class="header-actions">
             {% if user.is_authenticated %}
                 <div class="dropdown">
@@ -112,11 +113,29 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <p>&copy; 2024 All In Saqua. Todos os direitos reservados.</p>
+        <p>&copy; {% now "Y" %} All In Saqua. Todos os direitos reservados.</p>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 {% block extra_js %}{% endblock %}
+<script>
+(function(){
+    var btn = document.getElementById('menuToggle');
+    var nav = document.querySelector('.main-nav');
+    if (!btn || !nav) return;
+    btn.addEventListener('click', function(){
+        var open = nav.classList.toggle('nav-open');
+        btn.setAttribute('aria-expanded', open);
+        btn.textContent = open ? '✕' : '☰';
+    });
+    document.addEventListener('click', function(e){
+        if (!nav.contains(e.target) && !btn.contains(e.target)){
+            nav.classList.remove('nav-open');
+            btn.textContent = '☰';
+        }
+    });
+})();
+</script>
 </body>
 </html>

@@ -2,9 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
 
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from .models import Estabelecimento, PontoTuristico, Quarto, Reserva, Evento, Comentario, AvaliacaoAcessibilidade
 from .forms import CadastroForm, LoginForm, ReservaForm, ComentarioForm
 
@@ -34,14 +34,20 @@ def servicos(request):
 
 def turismo(request):
     nivel = request.GET.get('nivel', '')
+    busca = request.GET.get('q', '')
     pontos = PontoTuristico.objects.order_by('-criado_em')
     if nivel:
         pontos = pontos.filter(nivel_acessibilidade=nivel)
+    if busca:
+        pontos = pontos.filter(Q(titulo__icontains=busca) | Q(descricao__icontains=busca))
+    paginator = Paginator(pontos, 9)
+    page = paginator.get_page(request.GET.get('page'))
     niveis = [('basico', 'Básico'), ('intermediario', 'Intermediário'), ('completo', 'Completo')]
     return render(request, 'portal/turismo.html', {
-        'pontos': pontos,
+        'pontos': page,
         'niveis': niveis,
         'nivel_atual': nivel,
+        'busca': busca,
     })
 
 
@@ -75,14 +81,20 @@ def avaliar_acessibilidade_ponto(request, pk):
 
 def lojas(request):
     categoria = request.GET.get('categoria', '')
+    busca = request.GET.get('q', '')
     estabelecimentos = Estabelecimento.objects.all()
     if categoria:
         estabelecimentos = estabelecimentos.filter(categoria=categoria)
+    if busca:
+        estabelecimentos = estabelecimentos.filter(Q(nome__icontains=busca) | Q(descricao__icontains=busca))
+    paginator = Paginator(estabelecimentos, 9)
+    page = paginator.get_page(request.GET.get('page'))
     categorias = Estabelecimento.CATEGORIA_CHOICES
     return render(request, 'portal/lojas.html', {
-        'estabelecimentos': estabelecimentos,
+        'estabelecimentos': page,
         'categorias': categorias,
         'categoria_atual': categoria,
+        'busca': busca,
     })
 
 

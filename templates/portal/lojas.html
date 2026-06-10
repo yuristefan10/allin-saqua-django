@@ -4,19 +4,28 @@
 {% block content %}
 <div class="container page-content">
     <h1 class="page-title">Estabelecimentos</h1>
+    <form method="get" class="busca-form">
+        {% if categoria_atual %}<input type="hidden" name="categoria" value="{{ categoria_atual }}">{% endif %}
+        <div class="busca-bar">
+            <input type="text" name="q" value="{{ busca }}" placeholder="Buscar estabelecimento..." class="busca-input">
+            <button type="submit" class="botao">Buscar</button>
+            {% if busca %}<a href="{% url 'lojas' %}{% if categoria_atual %}?categoria={{ categoria_atual }}{% endif %}" class="botao botao-outline">✕ Limpar</a>{% endif %}
+        </div>
+    </form>
+
     <div class="filtro-bar">
-        <a href="{% url 'lojas' %}" class="filtro-btn {% if not categoria_atual %}ativo{% endif %}">Todos</a>
+        <a href="{% url 'lojas' %}{% if busca %}?q={{ busca }}{% endif %}" class="filtro-btn {% if not categoria_atual %}ativo{% endif %}">Todos</a>
         {% for val, label in categorias %}
-            <a href="{% url 'lojas' %}?categoria={{ val }}" class="filtro-btn {% if categoria_atual == val %}ativo{% endif %}">{{ label }}</a>
+            <a href="{% url 'lojas' %}?categoria={{ val }}{% if busca %}&q={{ busca }}{% endif %}" class="filtro-btn {% if categoria_atual == val %}ativo{% endif %}">{{ label }}</a>
         {% endfor %}
     </div>
     <div class="cards-grid">
         {% for estab in estabelecimentos %}
         <div class="card">
             {% if estab.imagem %}
-                <img src="{{ estab.imagem.url }}" alt="{{ estab.nome }}">
+                <img src="{{ estab.imagem.url }}" alt="{{ estab.nome }}" loading="lazy" width="400" height="200">
             {% else %}
-                <div class="img-placeholder"></div>
+                <div class="img-placeholder img-placeholder--loja"></div>
             {% endif %}
             <div class="card-body">
                 <span class="categoria-badge">{{ estab.categoria }}</span>
@@ -30,5 +39,17 @@
         <p class="sem-conteudo">Nenhum estabelecimento encontrado.</p>
         {% endfor %}
     </div>
+
+    {% if estabelecimentos.has_other_pages %}
+    <div class="paginacao">
+        {% if estabelecimentos.has_previous %}
+            <a href="?page={{ estabelecimentos.previous_page_number }}{% if categoria_atual %}&categoria={{ categoria_atual }}{% endif %}{% if busca %}&q={{ busca }}{% endif %}" class="pag-btn">&larr; Anterior</a>
+        {% endif %}
+        <span class="pag-info">Página {{ estabelecimentos.number }} de {{ estabelecimentos.paginator.num_pages }}</span>
+        {% if estabelecimentos.has_next %}
+            <a href="?page={{ estabelecimentos.next_page_number }}{% if categoria_atual %}&categoria={{ categoria_atual }}{% endif %}{% if busca %}&q={{ busca }}{% endif %}" class="pag-btn">Próxima &rarr;</a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
