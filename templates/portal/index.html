@@ -30,7 +30,9 @@
             {% if evento_destaque %}
                 <div class="evento-hero">
                     {% if evento_destaque.imagem %}
-                        <img src="{{ evento_destaque.imagem.url }}" alt="{{ evento_destaque.titulo }}" class="evento-hero-img" loading="lazy">
+                        <div class="evento-hero-imagem" style="background-image: url('{{ evento_destaque.imagem.url }}')">
+                            <img src="{{ evento_destaque.imagem.url }}" alt="{{ evento_destaque.titulo }}" loading="lazy">
+                        </div>
                     {% else %}
                         <div class="evento-hero-placeholder">🎉</div>
                     {% endif %}

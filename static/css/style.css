@@ -238,8 +238,38 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ── Evento hero (destaque) ── */
 .evento-hero { background: var(--branco); border-radius: 12px; overflow: hidden; box-shadow: var(--sombra); margin-bottom: 20px; }
-.evento-hero-img { width: 100%; height: auto; max-height: 480px; object-fit: contain; background: #f0f0f0; display: block; }
-.evento-hero-placeholder { width: 100%; height: 260px; background: linear-gradient(135deg, var(--azul-escuro), var(--azul)); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+.evento-hero-imagem {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.evento-hero-imagem::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(18px) brightness(0.6);
+    -webkit-backdrop-filter: blur(18px) brightness(0.6);
+    background: inherit;
+    background-size: cover;
+    background-position: center;
+}
+.evento-hero-imagem img {
+    position: relative;
+    z-index: 1;
+    max-height: 300px;
+    width: auto;
+    max-width: 90%;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+.evento-hero-placeholder { width: 100%; height: 280px; background: linear-gradient(135deg, var(--azul-escuro), var(--azul)); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
 .evento-hero-body { padding: 20px 24px 24px; }
 .evento-tag-destaque { display: inline-block; background: var(--azul); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 10px; margin-bottom: 10px; }
 .evento-hero-body h3 { font-size: 1.4rem; margin-bottom: 8px; color: var(--azul-escuro); }
