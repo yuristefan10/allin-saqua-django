@@ -1,6 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+import os
+
+ALLOWED_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+
+def validate_image_extension(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValidationError(f'Tipo de arquivo não permitido. Use: {", ".join(ALLOWED_IMAGE_EXTENSIONS)}')
 
 
 class Usuario(AbstractUser):
@@ -15,6 +24,11 @@ class Usuario(AbstractUser):
 
     def is_admin_portal(self):
         return self.tipo == 'admin'
+
+    def save(self, *args, **kwargs):
+        if self.tipo == 'admin':
+            self.is_staff = True
+        super().save(*args, **kwargs)
 
 
 # ── Acessibilidade ────────────────────────────────────────────────────────────
@@ -76,7 +90,7 @@ class Estabelecimento(RecursosAcessibilidadeMixin):
     endereco       = models.CharField(max_length=255, blank=True)
     telefone       = models.CharField(max_length=20, blank=True)
     categoria      = models.CharField(max_length=20, choices=CATEGORIA_CHOICES)
-    imagem         = models.ImageField(upload_to='estabelecimentos/', blank=True, null=True)
+    imagem         = models.ImageField(upload_to='estabelecimentos/', blank=True, null=True, validators=[validate_image_extension])
     destaque       = models.BooleanField(default=False)
     ordem_destaque = models.IntegerField(default=0)
     criado_em      = models.DateTimeField(auto_now_add=True)
@@ -118,7 +132,7 @@ class Comentario(models.Model):
     STATUS_CHOICES = [('Pendente', 'Pendente'), ('Aprovado', 'Aprovado'), ('Reprovado', 'Reprovado')]
     estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.CASCADE, related_name='comentarios')
     usuario         = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    comentario      = models.TextField()
+    comentario      = models.TextField(max_length=1000)
     nota            = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     data_comentario = models.DateTimeField(auto_now_add=True)
     status          = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pendente')
@@ -135,7 +149,7 @@ class PontoTuristico(RecursosAcessibilidadeMixin):
     descricao = models.CharField(max_length=190)
     sobre     = models.TextField()
     link      = models.URLField(max_length=250, blank=True)
-    imagem    = models.ImageField(upload_to='pontos/', blank=True, null=True)
+    imagem    = models.ImageField(upload_to='pontos/', blank=True, null=True, validators=[validate_image_extension])
     criado_em = models.DateTimeField(auto_now_add=True)
 
     # Tour 360°
@@ -158,6 +172,12 @@ class PontoTuristico(RecursosAcessibilidadeMixin):
         help_text='Ex: https://www.google.com/maps/embed?pb=...'
     )
 
+    def clean(self):
+        super().clean()
+        if self.tour_streetview_url:
+            if not self.tour_streetview_url.startswith('https://www.google.com/maps/'):
+                raise ValidationError({'tour_streetview_url': 'A URL deve ser do Google Maps (https://www.google.com/maps/...)'})
+
     class Meta:
         verbose_name = 'Ponto Turístico'
         verbose_name_plural = 'Pontos Turísticos'
@@ -173,7 +193,7 @@ class FotoTour360(models.Model):
     """Múltiplas cenas para o tour de um ponto turístico."""
     ponto      = models.ForeignKey(PontoTuristico, on_delete=models.CASCADE, related_name='fotos_360')
     titulo     = models.CharField(max_length=80, verbose_name='Nome da cena')
-    foto       = models.ImageField(upload_to='tours360/', verbose_name='Foto equirretangular')
+    foto       = models.ImageField(upload_to='tours360/', verbose_name='Foto equirretangular', validators=[validate_image_extension])
     ordem      = models.IntegerField(default=0)
     descricao  = models.CharField(max_length=200, blank=True)
 
@@ -237,7 +257,7 @@ class Evento(models.Model):
     titulo         = models.CharField(max_length=100)
     descricao_curta= models.CharField(max_length=255, blank=True)
     data_evento    = models.DateField(blank=True, null=True)
-    imagem         = models.ImageField(upload_to='eventos/', blank=True, null=True)
+    imagem         = models.ImageField(upload_to='eventos/', blank=True, null=True, validators=[validate_image_extension])
     link_externo   = models.URLField(max_length=255, blank=True)
     criado_em      = models.DateTimeField(auto_now_add=True)
 
