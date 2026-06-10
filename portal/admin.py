@@ -79,8 +79,8 @@ class PontoTuristicoAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('titulo', 'descricao', 'sobre', 'link', 'imagem')}),
         ('Tour 360°', {
-            'fields': ('tour_tipo', 'tour_foto_360', 'tour_streetview_url'),
-            'description': '📱 Para adicionar fotos 360°, use o app "360 Photo Camera" no Android, exporte o .jpg e faça upload.',
+            'fields': ('tour_tipo', 'tour_streetview_url'),
+            'description': '📱 Selecione o tipo. Para Foto 360°, adicione as cenas na seção abaixo. Para Street View, cole a URL de embed do Google Maps.',
         }),
         ACESSIBILIDADE_FIELDSET,
     )
