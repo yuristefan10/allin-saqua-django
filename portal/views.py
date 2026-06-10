@@ -12,9 +12,20 @@ from .forms import CadastroForm, LoginForm, ReservaForm, ComentarioForm
 # ── Páginas públicas ──────────────────────────────────────────────────────────
 
 def index(request):
+    from django.utils import timezone
+    hoje = timezone.now().date()
     destaques = Estabelecimento.objects.filter(destaque=True).order_by('ordem_destaque', 'nome')[:5]
-    eventos = Evento.objects.order_by('-data_evento')[:3]
-    return render(request, 'portal/index.html', {'destaques': destaques, 'eventos': eventos})
+    proximos = Evento.objects.filter(data_evento__gte=hoje).order_by('data_evento')
+    evento_destaque = proximos.first()
+    outros_eventos = proximos[1:4]
+    if not evento_destaque:
+        evento_destaque = Evento.objects.order_by('-data_evento').first()
+        outros_eventos = Evento.objects.order_by('-data_evento')[1:4]
+    return render(request, 'portal/index.html', {
+        'destaques': destaques,
+        'evento_destaque': evento_destaque,
+        'outros_eventos': outros_eventos,
+    })
 
 
 def sobre(request):
