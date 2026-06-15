@@ -5,6 +5,7 @@ turísticos que ainda não têm imagem. Idempotente: só preenche o que está va
 Uso:  python manage.py baixar_imagens_pontos
 """
 import os
+import time
 import urllib.request
 
 from django.core.files.base import ContentFile
@@ -57,12 +58,18 @@ class Command(BaseCommand):
                 self.stdout.write(f'• Já tem imagem, pulando: {titulo}')
                 continue
 
-            try:
-                req = urllib.request.Request(url, headers={'User-Agent': 'AllInSaqua/1.0 (turismo)'})
-                with urllib.request.urlopen(req, timeout=30) as resp:
-                    dados = resp.read()
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'✗ Erro ao baixar {titulo}: {e}'))
+            dados = None
+            for tentativa in range(3):
+                try:
+                    req = urllib.request.Request(url, headers={'User-Agent': 'AllInSaqua/1.0 (turismo; contato@allinsaqua.com.br)'})
+                    with urllib.request.urlopen(req, timeout=30) as resp:
+                        dados = resp.read()
+                    break
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f'  tentativa {tentativa + 1} falhou para {titulo}: {e}'))
+                    time.sleep(5)
+            if dados is None:
+                self.stdout.write(self.style.ERROR(f'✗ Erro ao baixar {titulo} após 3 tentativas'))
                 continue
 
             nome_arquivo = os.path.basename(urllib.request.url2pathname(url.split('/')[-1]))
@@ -72,5 +79,6 @@ class Command(BaseCommand):
                 ponto.sobre = (ponto.sobre or '').rstrip() + f'\n\n_{credito}_'
             ponto.save()
             self.stdout.write(self.style.SUCCESS(f'✓ Imagem adicionada: {titulo}'))
+            time.sleep(3)  # evita rate limit (HTTP 429) do Wikimedia
 
         self.stdout.write(self.style.SUCCESS('Concluído.'))
