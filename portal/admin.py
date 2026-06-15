@@ -1,5 +1,7 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
 from .models import (Usuario, Estabelecimento, Quarto, ImagemQuarto,
                      Comentario, PontoTuristico, FotoTour360,
                      AvaliacaoAcessibilidade, Reserva, Evento)
@@ -71,13 +73,33 @@ class FotoTour360Inline(admin.TabularInline):
     fields = ['titulo', 'foto', 'ordem', 'descricao']
 
 
+class PontoTuristicoForm(forms.ModelForm):
+    class Meta:
+        model = PontoTuristico
+        fields = '__all__'
+        help_texts = {
+            'descricao': 'Resumo curto (máx. 190 caracteres) exibido nos cards e nos resultados de busca.',
+            'sobre': 'Texto completo exibido na página de detalhe. Pode ter vários parágrafos.',
+            'link': 'Link externo, ex.: localização no Google Maps.',
+            'imagem': 'Imagem de capa em paisagem. Recomendado 1200×400 px (.jpg, .png, .webp).',
+        }
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
 @admin.register(PontoTuristico)
 class PontoTuristicoAdmin(admin.ModelAdmin):
-    list_display  = ['titulo', 'nivel_acessibilidade', 'tour_tipo', 'criado_em']
+    form = PontoTuristicoForm
+    list_display  = ['titulo', 'nivel_acessibilidade', 'tour_tipo', 'tem_imagem', 'qtd_fotos_360', 'criado_em']
     list_filter   = ['nivel_acessibilidade', 'tour_tipo']
-    search_fields = ['titulo']
+    search_fields = ['titulo', 'descricao', 'sobre']
+    date_hierarchy = 'criado_em'
+    list_per_page = 25
+    readonly_fields = ['preview_imagem']
     fieldsets = (
-        (None, {'fields': ('titulo', 'descricao', 'sobre', 'link', 'imagem')}),
+        (None, {'fields': ('titulo', 'descricao', 'sobre', 'link')}),
+        ('Imagem de capa', {'fields': ('imagem', 'preview_imagem')}),
         ('Tour 360°', {
             'fields': ('tour_tipo', 'tour_streetview_url'),
             'description': '📱 Selecione o tipo. Para Foto 360°, adicione as cenas na seção abaixo. Para Street View, cole a URL de embed do Google Maps.',
@@ -85,6 +107,23 @@ class PontoTuristicoAdmin(admin.ModelAdmin):
         ACESSIBILIDADE_FIELDSET,
     )
     inlines = [FotoTour360Inline]
+
+    @admin.display(description='Imagem', boolean=True)
+    def tem_imagem(self, obj):
+        return bool(obj.imagem)
+
+    @admin.display(description='Fotos 360°')
+    def qtd_fotos_360(self, obj):
+        return obj.fotos_360.count()
+
+    @admin.display(description='Pré-visualização')
+    def preview_imagem(self, obj):
+        if obj.imagem:
+            return format_html(
+                '<img src="{}" style="max-height:180px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2)">',
+                obj.imagem.url
+            )
+        return 'Nenhuma imagem enviada ainda.'
 
 
 @admin.register(AvaliacaoAcessibilidade)
