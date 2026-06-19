@@ -350,22 +350,5 @@ img { max-width: 100%; height: auto; display: block; }
     .busca-input { min-width: unset; }
 }
 
-/* ── Modo escuro ── */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --cinza: #1e2530;
-        --cinza-medio: #2e3a4a;
-        --texto: #e0e6ed;
-        --branco: #141a22;
-        --sombra: 0 2px 10px rgba(0,0,0,.4);
-    }
-    body { background: #0f1520; }
-    .card, .form-card, .perfil-card, .sucesso-card, .acessibilidade-card, .comentario-card, .comentario-form { background: #1e2530; }
-    .recurso-item { background: #243040; }
-    .busca-input { background: #1e2530; color: var(--texto); border-color: #2e3a4a; }
-    .filtro-btn { background: #1e2530; color: var(--texto); }
-    .tabela { background: #1e2530; }
-    .dropdown-menu { background: #1e2530; }
-    .dropdown-menu ul li a:hover { background: #243040; }
-    .img-placeholder { background: linear-gradient(135deg, #1e2a38, #162030); }
-}
+/* Mantém o tema claro mesmo em aparelhos com modo escuro ativado */
+:root { color-scheme: light; }
