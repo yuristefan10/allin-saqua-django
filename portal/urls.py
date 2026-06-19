@@ -23,6 +23,10 @@ urlpatterns = [
     path('reservas/<int:pk>/sucesso/', views.reserva_sucesso, name='reserva_sucesso'),
     path('reservas/', views.consultar_reservas, name='consultar_reservas'),
 
+    path('parceria/', views.solicitar_parceria, name='solicitar_parceria'),
+    path('painel-parceiro/', views.painel_parceiro, name='painel_parceiro'),
+    path('painel-parceiro/estabelecimento/<int:pk>/editar/', views.editar_estabelecimento_parceiro, name='editar_estabelecimento_parceiro'),
+
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('cadastro/', views.cadastro_view, name='cadastro'),

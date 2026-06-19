@@ -1,0 +1,44 @@
+{% extends 'portal/base.html' %}
+{% block title %}Painel do Parceiro — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Painel do Parceiro</h1>
+    <p class="subtitulo">Gerencie as informações do seu estabelecimento. Toda alteração passa por aprovação do administrador.</p>
+
+    {% for estab in estabelecimentos %}
+    <div class="painel-card">
+        <div class="painel-card-head">
+            <h3>{{ estab.nome }}</h3>
+            <span class="status-badge status-{{ estab.status }}">{{ estab.get_status_display }}</span>
+        </div>
+        <p class="info-item">{{ estab.get_categoria_display }} — {{ estab.descricao }}</p>
+        {% if estab.endereco %}<p class="info-item">📍 {{ estab.endereco }}</p>{% endif %}
+        {% if estab.telefone %}<p class="info-item">📞 {{ estab.telefone }}</p>{% endif %}
+
+        {% with pend=estab.edicoes.all %}
+        {% if pend %}
+        <div class="painel-edicoes">
+            <strong>Suas edições:</strong>
+            <ul>
+                {% for e in pend|slice:":5" %}
+                <li>{{ e.criado_em|date:"d/m/Y H:i" }} —
+                    <span class="status-{{ e.status }}">{{ e.get_status_display }}</span>
+                    ({{ e.alteracoes|length }} campo{{ e.alteracoes|length|pluralize }})
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <a href="{% url 'editar_estabelecimento_parceiro' estab.pk %}" class="botao">Editar informações</a>
+        {% if estab.status == 'aprovado' %}
+        <a href="{% url 'detalhe_estabelecimento' estab.pk %}" class="botao botao-outline">Ver no site</a>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p class="sem-conteudo">Nenhum estabelecimento vinculado à sua conta ainda.</p>
+    {% endfor %}
+</div>
+{% endblock %}

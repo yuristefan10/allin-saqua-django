@@ -1,10 +1,12 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils import timezone
 from django.utils.html import format_html
 from .models import (Usuario, Estabelecimento, Quarto, ImagemQuarto,
                      Comentario, PontoTuristico, FotoTour360,
-                     AvaliacaoAcessibilidade, Reserva, Evento)
+                     AvaliacaoAcessibilidade, Reserva, Evento,
+                     EdicaoEstabelecimento)
 
 ACESSIBILIDADE_FIELDSET = ('Acessibilidade', {
     'fields': (
@@ -36,15 +38,32 @@ class QuartoInline(admin.TabularInline):
 
 @admin.register(Estabelecimento)
 class EstabelecimentoAdmin(admin.ModelAdmin):
-    list_display  = ['nome', 'categoria', 'nivel_acessibilidade', 'destaque', 'ordem_destaque']
-    list_filter   = ['categoria', 'destaque', 'nivel_acessibilidade']
+    list_display  = ['nome', 'categoria', 'status', 'proprietario', 'nivel_acessibilidade', 'destaque', 'ordem_destaque']
+    list_filter   = ['status', 'categoria', 'destaque', 'nivel_acessibilidade']
     list_editable = ['destaque', 'ordem_destaque']
     search_fields = ['nome', 'endereco']
+    actions       = ['aprovar_estabelecimento', 'rejeitar_estabelecimento']
     fieldsets = (
         (None, {'fields': ('nome', 'descricao', 'endereco', 'telefone', 'categoria', 'imagem', 'destaque', 'ordem_destaque')}),
+        ('Parceria', {'fields': ('proprietario', 'status')}),
         ACESSIBILIDADE_FIELDSET,
     )
     inlines = [QuartoInline]
+
+    @admin.action(description='Aprovar e publicar (ativa o parceiro)')
+    def aprovar_estabelecimento(self, request, qs):
+        for estab in qs:
+            estab.status = 'aprovado'
+            estab.save()
+            if estab.proprietario and not estab.proprietario.is_active:
+                estab.proprietario.is_active = True
+                estab.proprietario.save()
+        self.message_user(request, f'{qs.count()} estabelecimento(s) aprovado(s) e parceiro(s) ativado(s).')
+
+    @admin.action(description='Rejeitar estabelecimento')
+    def rejeitar_estabelecimento(self, request, qs):
+        qs.update(status='rejeitado')
+        self.message_user(request, f'{qs.count()} estabelecimento(s) rejeitado(s).')
 
 
 @admin.register(Quarto)
@@ -130,6 +149,73 @@ class PontoTuristicoAdmin(admin.ModelAdmin):
 class AvaliacaoAcessibilidadeAdmin(admin.ModelAdmin):
     list_display = ['usuario', 'tipo_local', 'ponto', 'estabelecimento', 'nota', 'data']
     list_filter  = ['tipo_local', 'nota']
+
+
+@admin.register(EdicaoEstabelecimento)
+class EdicaoEstabelecimentoAdmin(admin.ModelAdmin):
+    list_display   = ['estabelecimento', 'solicitante', 'status', 'qtd_alteracoes', 'criado_em']
+    list_filter    = ['status', 'criado_em']
+    search_fields  = ['estabelecimento__nome', 'solicitante__username']
+    readonly_fields = ['estabelecimento', 'solicitante', 'relatorio_alteracoes',
+                       'preview_imagem_proposta', 'criado_em', 'revisado_em']
+    actions        = ['aprovar_edicoes', 'rejeitar_edicoes']
+    fields = ['estabelecimento', 'solicitante', 'status', 'relatorio_alteracoes',
+              'preview_imagem_proposta', 'observacao_admin', 'criado_em', 'revisado_em']
+
+    @admin.display(description='Alterações')
+    def qtd_alteracoes(self, obj):
+        n = len(obj.alteracoes or {})
+        if obj.imagem_proposta:
+            n += 1
+        return f'{n} campo(s)'
+
+    @admin.display(description='Relatório de alterações propostas')
+    def relatorio_alteracoes(self, obj):
+        if not obj.alteracoes:
+            return 'Nenhuma alteração de texto (verifique a imagem abaixo).'
+        linhas = [
+            '<table style="border-collapse:collapse;width:100%;max-width:700px">',
+            '<tr style="background:#417690;color:#fff">'
+            '<th style="padding:8px;text-align:left">Campo</th>'
+            '<th style="padding:8px;text-align:left">Valor atual</th>'
+            '<th style="padding:8px;text-align:left">Novo valor</th></tr>',
+        ]
+        for campo, v in obj.alteracoes.items():
+            rotulo = v.get('rotulo', campo)
+            de = v.get('de', '')
+            para = v.get('para', '')
+            de = '—' if de in ('', None) else de
+            para = '—' if para in ('', None) else para
+            linhas.append(
+                f'<tr style="border-bottom:1px solid #ddd">'
+                f'<td style="padding:8px;font-weight:600">{rotulo}</td>'
+                f'<td style="padding:8px;color:#b00">{de}</td>'
+                f'<td style="padding:8px;color:#080">{para}</td></tr>'
+            )
+        linhas.append('</table>')
+        return format_html(''.join(linhas))
+
+    @admin.display(description='Nova imagem proposta')
+    def preview_imagem_proposta(self, obj):
+        if obj.imagem_proposta:
+            return format_html('<img src="{}" style="max-height:180px;border-radius:8px">', obj.imagem_proposta.url)
+        return 'Sem alteração de imagem.'
+
+    @admin.action(description='Aprovar e aplicar alterações selecionadas')
+    def aprovar_edicoes(self, request, qs):
+        aplicadas = 0
+        for edicao in qs.filter(status='pendente'):
+            edicao.aplicar()
+            edicao.status = 'aprovado'
+            edicao.revisado_em = timezone.now()
+            edicao.save()
+            aplicadas += 1
+        self.message_user(request, f'{aplicadas} edição(ões) aprovada(s) e aplicada(s) ao site.')
+
+    @admin.action(description='Rejeitar alterações selecionadas')
+    def rejeitar_edicoes(self, request, qs):
+        n = qs.filter(status='pendente').update(status='rejeitado', revisado_em=timezone.now())
+        self.message_user(request, f'{n} edição(ões) rejeitada(s).')
 
 
 @admin.register(Reserva)

@@ -68,6 +68,10 @@
                                     <li><a href="{% url 'admin:index' %}">Painel Administrativo</a></li>
                                     <hr>
                                 {% endif %}
+                                {% if user.tipo == 'parceiro' %}
+                                    <li><a href="{% url 'painel_parceiro' %}">Meu Estabelecimento</a></li>
+                                    <hr>
+                                {% endif %}
                                 <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
                                 <li><a href="{% url 'consultar_reservas' %}">Minhas Reservas</a></li>
                                 <li><a href="{% url 'logout' %}">Sair</a></li>
@@ -105,12 +109,17 @@
             <ul>
                 <li><a href="{% url 'turismo' %}">Pontos Turísticos</a></li>
                 <li><a href="{% url 'lojas' %}">Estabelecimentos</a></li>
+                <li><a href="{% url 'eventos' %}">Eventos</a></li>
                 <li><a href="{% url 'sobre' %}">Sobre</a></li>
                 <li><a href="{% url 'contato' %}">Contato</a></li>
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Contato</h4>
+            <h4>Para empresas</h4>
+            <ul>
+                <li><a href="{% url 'solicitar_parceria' %}">Seja um Parceiro</a></li>
+            </ul>
+            <h4 style="margin-top:16px;">Contato</h4>
             <p>Saquarema, RJ — Brasil</p>
         </div>
     </div>

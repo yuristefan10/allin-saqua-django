@@ -5,16 +5,18 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 
 from django.db.models import Avg, Q
-from .models import Estabelecimento, PontoTuristico, Quarto, Reserva, Evento, Comentario, AvaliacaoAcessibilidade
-from .forms import CadastroForm, LoginForm, ReservaForm, ComentarioForm
+from django.utils import timezone
+from .models import (Estabelecimento, PontoTuristico, Quarto, Reserva, Evento, Comentario,
+                     AvaliacaoAcessibilidade, EdicaoEstabelecimento, CAMPOS_EDITAVEIS_ESTAB)
+from .forms import (CadastroForm, LoginForm, ReservaForm, ComentarioForm,
+                    SolicitacaoParceriaForm, EstabelecimentoParceiroForm)
 
 
 # ── Páginas públicas ──────────────────────────────────────────────────────────
 
 def index(request):
-    from django.utils import timezone
     hoje = timezone.now().date()
-    destaques = Estabelecimento.objects.filter(destaque=True).order_by('ordem_destaque', 'nome')[:5]
+    destaques = Estabelecimento.objects.filter(destaque=True, status='aprovado').order_by('ordem_destaque', 'nome')[:5]
     proximos = Evento.objects.filter(data_evento__gte=hoje).order_by('data_evento')
     evento_destaque = proximos.first()
     outros_eventos = proximos[1:4]
@@ -55,7 +57,7 @@ def contato(request):
 
 
 def servicos(request):
-    estabelecimentos = Estabelecimento.objects.filter(categoria='Serviço')
+    estabelecimentos = Estabelecimento.objects.filter(categoria='Serviço', status='aprovado')
     return render(request, 'portal/servicos.html', {'estabelecimentos': estabelecimentos})
 
 
@@ -111,7 +113,7 @@ def avaliar_acessibilidade_ponto(request, pk):
 def lojas(request):
     categoria = request.GET.get('categoria', '')
     busca = request.GET.get('q', '')
-    estabelecimentos = Estabelecimento.objects.all()
+    estabelecimentos = Estabelecimento.objects.filter(status='aprovado')
     if categoria:
         estabelecimentos = estabelecimentos.filter(categoria=categoria)
     if busca:
@@ -129,6 +131,12 @@ def lojas(request):
 
 def detalhe_estabelecimento(request, pk):
     estab = get_object_or_404(Estabelecimento, pk=pk)
+    # estabelecimento não aprovado só é visível ao dono ou ao admin
+    if estab.status != 'aprovado':
+        if not (request.user.is_authenticated and
+                (request.user == estab.proprietario or request.user.is_staff)):
+            from django.http import Http404
+            raise Http404()
     comentarios = estab.comentarios.filter(status='Aprovado').order_by('-data_comentario')
     form = ComentarioForm()
 
@@ -149,6 +157,73 @@ def detalhe_estabelecimento(request, pk):
         'estab': estab,
         'comentarios': comentarios,
         'form': form,
+    })
+
+
+# ── Parceria ──────────────────────────────────────────────────────────────────
+
+def solicitar_parceria(request):
+    form = SolicitacaoParceriaForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request,
+            'Solicitação enviada! Sua conta será analisada pelo administrador. '
+            'Você poderá fazer login assim que for aprovada.')
+        return redirect('index')
+    return render(request, 'portal/solicitar_parceria.html', {'form': form})
+
+
+@login_required
+def painel_parceiro(request):
+    if request.user.tipo != 'parceiro' and not request.user.is_staff:
+        messages.warning(request, 'Acesso restrito a parceiros.')
+        return redirect('index')
+    estabelecimentos = Estabelecimento.objects.filter(proprietario=request.user)
+    return render(request, 'portal/painel_parceiro.html', {'estabelecimentos': estabelecimentos})
+
+
+@login_required
+def editar_estabelecimento_parceiro(request, pk):
+    estab = get_object_or_404(Estabelecimento, pk=pk)
+    if estab.proprietario != request.user and not request.user.is_staff:
+        messages.warning(request, 'Você só pode editar o seu próprio estabelecimento.')
+        return redirect('painel_parceiro')
+
+    pendentes = estab.edicoes.filter(status='pendente')
+
+    if request.method == 'POST':
+        form = EstabelecimentoParceiroForm(request.POST, request.FILES, instance=estab)
+        if form.is_valid():
+            # monta o diff sem alterar o registro ao vivo
+            alteracoes = {}
+            for campo, rotulo in CAMPOS_EDITAVEIS_ESTAB:
+                atual = getattr(estab, campo)
+                novo = form.cleaned_data.get(campo)
+                if atual != novo:
+                    alteracoes[campo] = {'rotulo': rotulo, 'de': atual, 'para': novo}
+
+            nova_imagem = request.FILES.get('imagem')
+            if not alteracoes and not nova_imagem:
+                messages.info(request, 'Nenhuma alteração detectada.')
+                return redirect('editar_estabelecimento_parceiro', pk=pk)
+
+            edicao = EdicaoEstabelecimento.objects.create(
+                estabelecimento=estab,
+                solicitante=request.user,
+                alteracoes=alteracoes,
+                imagem_proposta=nova_imagem,
+            )
+            messages.success(request,
+                'Alterações enviadas para aprovação do administrador. '
+                'Elas só aparecerão no site após a aprovação.')
+            return redirect('painel_parceiro')
+    else:
+        form = EstabelecimentoParceiroForm(instance=estab)
+
+    return render(request, 'portal/editar_estabelecimento_parceiro.html', {
+        'form': form,
+        'estab': estab,
+        'pendentes': pendentes,
     })
 
 
@@ -198,8 +273,14 @@ def login_view(request):
         return redirect('index')
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        login(request, form.get_user())
-        return redirect(request.GET.get('next', 'index'))
+        user = form.get_user()
+        login(request, user)
+        next_url = request.GET.get('next')
+        if next_url:
+            return redirect(next_url)
+        if user.tipo == 'parceiro':
+            return redirect('painel_parceiro')
+        return redirect('index')
     return render(request, 'portal/login.html', {'form': form})
 
 

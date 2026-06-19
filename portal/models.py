@@ -13,7 +13,7 @@ def validate_image_extension(value):
 
 
 class Usuario(AbstractUser):
-    TIPO_CHOICES = [('admin', 'Admin'), ('comum', 'Comum')]
+    TIPO_CHOICES = [('admin', 'Admin'), ('comum', 'Comum'), ('parceiro', 'Parceiro')]
     cpf = models.CharField(max_length=11, unique=True)
     telefone = models.CharField(max_length=20, blank=True)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='comum')
@@ -85,6 +85,11 @@ class Estabelecimento(RecursosAcessibilidadeMixin):
         ('Serviço', 'Serviço'),
         ('Outro', 'Outro'),
     ]
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente de aprovação'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+    ]
     nome           = models.CharField(max_length=100)
     descricao      = models.CharField(max_length=255)
     endereco       = models.CharField(max_length=255, blank=True)
@@ -94,6 +99,12 @@ class Estabelecimento(RecursosAcessibilidadeMixin):
     destaque       = models.BooleanField(default=False)
     ordem_destaque = models.IntegerField(default=0)
     criado_em      = models.DateTimeField(auto_now_add=True)
+
+    # Parceria
+    proprietario   = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name='estabelecimentos', verbose_name='Parceiro responsável')
+    status         = models.CharField(max_length=10, choices=STATUS_CHOICES, default='aprovado',
+                                      verbose_name='Status de publicação')
 
     class Meta:
         verbose_name = 'Estabelecimento'
@@ -140,6 +151,61 @@ class Comentario(models.Model):
     class Meta:
         verbose_name = 'Comentário'
         verbose_name_plural = 'Comentários'
+
+
+# ── Edição de estabelecimento proposta pelo parceiro (aguarda aprovação) ──────
+
+# Campos que o parceiro pode editar (nome do campo -> rótulo legível)
+CAMPOS_EDITAVEIS_ESTAB = [
+    ('nome', 'Nome'),
+    ('descricao', 'Descrição'),
+    ('endereco', 'Endereço'),
+    ('telefone', 'Telefone'),
+    ('categoria', 'Categoria'),
+    ('nivel_acessibilidade', 'Nível de acessibilidade'),
+    ('ac_rampa', 'Rampa de acesso'),
+    ('ac_elevador', 'Elevador'),
+    ('ac_banheiro_adaptado', 'Banheiro adaptado (PCD)'),
+    ('ac_estacionamento', 'Vaga de estacionamento PCD'),
+    ('ac_piso_tatil', 'Piso tátil'),
+    ('ac_libras', 'Atendimento em Libras'),
+    ('ac_braile', 'Informações em Braille'),
+    ('ac_audio_guia', 'Audioguia'),
+    ('obs_acessibilidade', 'Observações de acessibilidade'),
+]
+
+
+class EdicaoEstabelecimento(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado'),
+    ]
+    estabelecimento = models.ForeignKey(Estabelecimento, on_delete=models.CASCADE, related_name='edicoes')
+    solicitante     = models.ForeignKey('Usuario', on_delete=models.CASCADE)
+    alteracoes      = models.JSONField(default=dict, help_text='Campos alterados no formato {campo: {de, para}}.')
+    imagem_proposta = models.ImageField(upload_to='edicoes/', blank=True, null=True, validators=[validate_image_extension])
+    status          = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente')
+    observacao_admin= models.TextField(blank=True, verbose_name='Observação do administrador')
+    criado_em       = models.DateTimeField(auto_now_add=True)
+    revisado_em     = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Edição de Estabelecimento'
+        verbose_name_plural = 'Edições de Estabelecimentos (parceiros)'
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f'Edição de {self.estabelecimento.nome} por {self.solicitante} ({self.get_status_display()})'
+
+    def aplicar(self):
+        """Aplica as alterações propostas ao estabelecimento."""
+        estab = self.estabelecimento
+        for campo, valores in self.alteracoes.items():
+            setattr(estab, campo, valores.get('para'))
+        if self.imagem_proposta:
+            estab.imagem = self.imagem_proposta
+        estab.save()
 
 
 # ── Ponto Turístico com Tour 360° e Acessibilidade ───────────────────────────

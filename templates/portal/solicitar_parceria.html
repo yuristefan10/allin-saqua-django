@@ -1,0 +1,44 @@
+{% extends 'portal/base.html' %}
+{% block title %}Seja um Parceiro — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content form-page">
+    <div class="form-card" style="max-width:620px;">
+        <h1>Seja um Parceiro</h1>
+        <p class="subtitulo" style="text-align:center;">
+            Cadastre seu estabelecimento. Após a aprovação do administrador, você poderá
+            gerenciar suas informações por aqui.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+
+            <h3 class="form-secao">Seus dados de acesso</h3>
+            {% for field in form %}
+                {% if forloop.counter <= 8 %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <h3 class="form-secao">Dados do estabelecimento</h3>
+            {% for field in form %}
+                {% if forloop.counter > 8 %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" class="botao botao-block botao-grande">Enviar solicitação</button>
+        </form>
+        <p class="form-footer">Já é parceiro? <a href="{% url 'login' %}">Faça login</a>.</p>
+    </div>
+</div>
+{% endblock %}
