@@ -19,12 +19,14 @@
         <a href="{% url 'index' %}" class="logo-link">
             <span class="logo-text">ALL IN SAQUA</span>
         </a>
-        <nav class="main-nav">
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <nav class="main-nav" id="mainNav">
             <ul class="nav-list">
                 <li><a href="{% url 'index' %}">Home</a></li>
                 <li><a href="{% url 'turismo' %}">Pontos Turísticos</a></li>
                 <li class="dropdown">
-                    <a href="{% url 'lojas' %}">Estabelecimentos</a>
+                    <a href="{% url 'lojas' %}" class="dropdown-link">Estabelecimentos</a>
+                    <button class="submenu-toggle" aria-label="Abrir submenu">▾</button>
                     <div class="dropdown-menu mega-menu">
                         <div class="mega-menu-content">
                             <div class="mega-menu-col">
@@ -53,31 +55,30 @@
                 <li><a href="{% url 'sobre' %}">Sobre</a></li>
                 <li><a href="{% url 'contato' %}">Contato</a></li>
             </ul>
-        </nav>
-        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
-        <div class="header-actions">
-            {% if user.is_authenticated %}
-                <div class="dropdown">
-                    <a href="#" class="nav-button dropdown-toggle">
-                        {% if user.is_admin_portal %}Painel Admin{% else %}{{ user.first_name }}{% endif %}
-                    </a>
-                    <div class="dropdown-menu admin-menu">
-                        <ul>
-                            {% if user.is_admin_portal %}
-                                <li><a href="{% url 'admin:index' %}">Painel Administrativo</a></li>
-                                <hr>
-                            {% endif %}
-                            <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
-                            <li><a href="{% url 'consultar_reservas' %}">Minhas Reservas</a></li>
-                            <li><a href="{% url 'logout' %}">Sair</a></li>
-                        </ul>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a href="#" class="nav-button dropdown-toggle">
+                            {% if user.is_admin_portal %}Painel Admin{% else %}{{ user.first_name }}{% endif %}
+                        </a>
+                        <div class="dropdown-menu admin-menu">
+                            <ul>
+                                {% if user.is_admin_portal %}
+                                    <li><a href="{% url 'admin:index' %}">Painel Administrativo</a></li>
+                                    <hr>
+                                {% endif %}
+                                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
+                                <li><a href="{% url 'consultar_reservas' %}">Minhas Reservas</a></li>
+                                <li><a href="{% url 'logout' %}">Sair</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            {% else %}
-                <a href="{% url 'login' %}" class="nav-button">Login</a>
-                <a href="{% url 'cadastro' %}" class="nav-button nav-button-outline">Cadastre-se</a>
-            {% endif %}
-        </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-button">Login</a>
+                    <a href="{% url 'cadastro' %}" class="nav-button nav-button-outline">Cadastre-se</a>
+                {% endif %}
+            </div>
+        </nav>
     </div>
 </header>
 
@@ -122,18 +123,34 @@
 <script>
 (function(){
     var btn = document.getElementById('menuToggle');
-    var nav = document.querySelector('.main-nav');
+    var nav = document.getElementById('mainNav');
     if (!btn || !nav) return;
+
+    function fechar(){
+        nav.classList.remove('nav-open');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.textContent = '☰';
+        document.querySelectorAll('.dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+    }
+
     btn.addEventListener('click', function(){
         var open = nav.classList.toggle('nav-open');
         btn.setAttribute('aria-expanded', open);
         btn.textContent = open ? '✕' : '☰';
     });
+
+    // submenu "Estabelecimentos" por toque (só ativo no mobile)
+    document.querySelectorAll('.submenu-toggle').forEach(function(tog){
+        tog.addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            tog.closest('.dropdown').classList.toggle('open');
+        });
+    });
+
+    // fecha ao clicar fora
     document.addEventListener('click', function(e){
-        if (!nav.contains(e.target) && !btn.contains(e.target)){
-            nav.classList.remove('nav-open');
-            btn.textContent = '☰';
-        }
+        if (!nav.contains(e.target) && !btn.contains(e.target)) fechar();
     });
 })();
 </script>
