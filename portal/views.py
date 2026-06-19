@@ -194,7 +194,8 @@ def cadastro_view(request):
     form = CadastroForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
-        login(request, user)
+        # com django-axes há múltiplos backends; é preciso indicar qual usar
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         messages.success(request, f'Bem-vindo, {user.first_name}!')
         return redirect('index')
     return render(request, 'portal/cadastro.html', {'form': form})
