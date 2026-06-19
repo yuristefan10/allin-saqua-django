@@ -316,6 +316,7 @@ img { max-width: 100%; height: auto; display: block; }
 .evento-hero--link { display: block; }
 .evento-hero--link:hover { text-decoration: none; }
 .evento-hero--link .evento-hero-body h3 { color: var(--azul-escuro); }
+.rota-msg { font-size: .88rem; color: #666; margin-top: 10px; }
 
 /* ── Busca ── */
 .busca-form { margin-bottom: 20px; }
