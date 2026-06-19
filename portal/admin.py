@@ -38,6 +38,25 @@ class UsuarioAdmin(UserAdmin):
     )
     list_display = ['username', 'email', 'first_name', 'last_name', 'tipo', 'is_active']
     list_filter  = ['tipo', 'is_active']
+    actions      = ['resetar_senha']
+
+    @admin.action(description='🔑 Resetar senha (gera senha temporária)')
+    def resetar_senha(self, request, qs):
+        from django.utils.crypto import get_random_string
+        alfabeto = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
+        for user in qs:
+            nova = get_random_string(10, alfabeto)
+            user.set_password(nova)
+            user.save()
+            self.message_user(
+                request,
+                format_html(
+                    'Senha de <strong>{}</strong> redefinida para: '
+                    '<code style="background:#eee;padding:2px 8px;border-radius:4px">{}</code> '
+                    '— envie ao parceiro e oriente a trocá-la.',
+                    user.username, nova
+                )
+            )
 
 
 class QuartoInline(admin.TabularInline):
