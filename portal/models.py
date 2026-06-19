@@ -338,3 +338,11 @@ class Evento(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class SolicitacaoParceria(Estabelecimento):
+    """Proxy de Estabelecimento — menu dedicado no admin só para solicitações pendentes."""
+    class Meta:
+        proxy = True
+        verbose_name = 'Solicitação de Parceria'
+        verbose_name_plural = '⭐ Solicitações de Parceria'

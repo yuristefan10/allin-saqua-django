@@ -6,7 +6,16 @@ from django.utils.html import format_html
 from .models import (Usuario, Estabelecimento, Quarto, ImagemQuarto,
                      Comentario, PontoTuristico, FotoTour360,
                      AvaliacaoAcessibilidade, Reserva, Evento,
-                     EdicaoEstabelecimento)
+                     EdicaoEstabelecimento, SolicitacaoParceria)
+
+
+def status_colorido(status, label):
+    cores = {'pendente': '#f0ad4e', 'aprovado': '#5cb85c', 'rejeitado': '#d9534f'}
+    return format_html(
+        '<span style="background:{};color:#fff;padding:3px 10px;border-radius:10px;'
+        'font-size:.78rem;font-weight:600">{}</span>',
+        cores.get(status, '#777'), label
+    )
 
 ACESSIBILIDADE_FIELDSET = ('Acessibilidade', {
     'fields': (
@@ -38,7 +47,7 @@ class QuartoInline(admin.TabularInline):
 
 @admin.register(Estabelecimento)
 class EstabelecimentoAdmin(admin.ModelAdmin):
-    list_display  = ['nome', 'categoria', 'status', 'proprietario', 'nivel_acessibilidade', 'destaque', 'ordem_destaque']
+    list_display  = ['nome', 'categoria', 'status_badge', 'proprietario', 'nivel_acessibilidade', 'destaque', 'ordem_destaque']
     list_filter   = ['status', 'categoria', 'destaque', 'nivel_acessibilidade']
     list_editable = ['destaque', 'ordem_destaque']
     search_fields = ['nome', 'endereco']
@@ -49,6 +58,10 @@ class EstabelecimentoAdmin(admin.ModelAdmin):
         ACESSIBILIDADE_FIELDSET,
     )
     inlines = [QuartoInline]
+
+    @admin.display(description='Status', ordering='status')
+    def status_badge(self, obj):
+        return status_colorido(obj.status, obj.get_status_display())
 
     @admin.action(description='Aprovar e publicar (ativa o parceiro)')
     def aprovar_estabelecimento(self, request, qs):
@@ -64,6 +77,26 @@ class EstabelecimentoAdmin(admin.ModelAdmin):
     def rejeitar_estabelecimento(self, request, qs):
         qs.update(status='rejeitado')
         self.message_user(request, f'{qs.count()} estabelecimento(s) rejeitado(s).')
+
+
+@admin.register(SolicitacaoParceria)
+class SolicitacaoParceriaAdmin(EstabelecimentoAdmin):
+    """Menu dedicado que lista apenas as solicitações de parceria pendentes."""
+    list_display  = ['nome', 'categoria', 'status_badge', 'proprietario', 'contato_parceiro', 'criado_em']
+    list_filter   = ['status', 'categoria']
+    list_editable = []
+
+    def get_queryset(self, request):
+        # mostra apenas as solicitações pendentes (com proprietário)
+        return super().get_queryset(request).filter(
+            proprietario__isnull=False, status='pendente').order_by('-criado_em')
+
+    @admin.display(description='Contato do parceiro')
+    def contato_parceiro(self, obj):
+        if obj.proprietario:
+            p = obj.proprietario
+            return format_html('{}<br><small>{}</small>', p.get_full_name() or p.username, p.email)
+        return '—'
 
 
 @admin.register(Quarto)
