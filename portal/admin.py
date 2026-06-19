@@ -141,4 +141,12 @@ class ReservaAdmin(admin.ModelAdmin):
 
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'data_evento', 'criado_em']
+    list_display  = ['titulo', 'data_evento', 'local', 'tem_imagem']
+    list_filter   = ['data_evento']
+    search_fields = ['titulo', 'local', 'descricao']
+    date_hierarchy = 'data_evento'
+    fields = ['titulo', 'data_evento', 'local', 'descricao_curta', 'descricao', 'imagem', 'link_externo']
+
+    @admin.display(description='Imagem', boolean=True)
+    def tem_imagem(self, obj):
+        return bool(obj.imagem)

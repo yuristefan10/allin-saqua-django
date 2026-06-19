@@ -255,7 +255,11 @@ class Reserva(models.Model):
 
 class Evento(models.Model):
     titulo         = models.CharField(max_length=100)
-    descricao_curta= models.CharField(max_length=255, blank=True)
+    descricao_curta= models.CharField(max_length=255, blank=True, verbose_name='Descrição curta')
+    descricao      = models.TextField(blank=True, verbose_name='Descrição completa',
+                                      help_text='Texto detalhado exibido na página do evento.')
+    local          = models.CharField(max_length=200, blank=True, verbose_name='Local',
+                                      help_text='Endereço ou local do evento, ex.: "Praia de Itaúna, Saquarema". Usado para o mapa.')
     data_evento    = models.DateField(blank=True, null=True)
     imagem         = models.ImageField(upload_to='eventos/', blank=True, null=True, validators=[validate_image_extension])
     link_externo   = models.URLField(max_length=255, blank=True)
@@ -264,6 +268,7 @@ class Evento(models.Model):
     class Meta:
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventos'
+        ordering = ['data_evento']
 
     def __str__(self):
         return self.titulo

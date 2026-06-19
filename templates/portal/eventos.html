@@ -1,0 +1,82 @@
+{% extends 'portal/base.html' %}
+{% block title %}Calendário de Eventos 2026 — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <h1 class="page-title">Calendário de Eventos 2026</h1>
+    <p class="subtitulo">Confira a programação oficial de Saquarema e não perca nada.</p>
+
+    {% if proximos %}
+    <h2 class="eventos-secao-titulo">📅 Próximos eventos</h2>
+    <div class="eventos-grid">
+        {% for ev in proximos %}
+        <a href="{% url 'detalhe_evento' ev.pk %}" class="evento-card">
+            <div class="evento-card-img">
+                {% if ev.imagem %}
+                    <img src="{{ ev.imagem.url }}" alt="{{ ev.titulo }}" loading="lazy">
+                {% else %}
+                    <div class="evento-card-placeholder">🎉</div>
+                {% endif %}
+                {% if ev.data_evento %}
+                <div class="evento-card-data">
+                    <span class="dia">{{ ev.data_evento|date:"d" }}</span>
+                    <span class="mes">{{ ev.data_evento|date:"M" }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="evento-card-body">
+                <h3>{{ ev.titulo }}</h3>
+                {% if ev.local %}<p class="evento-card-local">📍 {{ ev.local }}</p>{% endif %}
+                {% if ev.descricao_curta %}<p class="evento-card-desc">{{ ev.descricao_curta|truncatechars:90 }}</p>{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if sem_data %}
+    <h2 class="eventos-secao-titulo">🗓️ Datas a confirmar</h2>
+    <div class="eventos-grid">
+        {% for ev in sem_data %}
+        <a href="{% url 'detalhe_evento' ev.pk %}" class="evento-card">
+            <div class="evento-card-img">
+                {% if ev.imagem %}<img src="{{ ev.imagem.url }}" alt="{{ ev.titulo }}" loading="lazy">{% else %}<div class="evento-card-placeholder">🎉</div>{% endif %}
+            </div>
+            <div class="evento-card-body">
+                <h3>{{ ev.titulo }}</h3>
+                {% if ev.local %}<p class="evento-card-local">📍 {{ ev.local }}</p>{% endif %}
+                {% if ev.descricao_curta %}<p class="evento-card-desc">{{ ev.descricao_curta|truncatechars:90 }}</p>{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if passados %}
+    <h2 class="eventos-secao-titulo eventos-passados">✓ Eventos já realizados</h2>
+    <div class="eventos-grid">
+        {% for ev in passados %}
+        <a href="{% url 'detalhe_evento' ev.pk %}" class="evento-card evento-card--passado">
+            <div class="evento-card-img">
+                {% if ev.imagem %}<img src="{{ ev.imagem.url }}" alt="{{ ev.titulo }}" loading="lazy">{% else %}<div class="evento-card-placeholder">🎉</div>{% endif %}
+                {% if ev.data_evento %}
+                <div class="evento-card-data">
+                    <span class="dia">{{ ev.data_evento|date:"d" }}</span>
+                    <span class="mes">{{ ev.data_evento|date:"M" }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="evento-card-body">
+                <h3>{{ ev.titulo }}</h3>
+                {% if ev.local %}<p class="evento-card-local">📍 {{ ev.local }}</p>{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not proximos and not sem_data and not passados %}
+    <p class="sem-conteudo">Nenhum evento cadastrado ainda.</p>
+    {% endif %}
+</div>
+{% endblock %}

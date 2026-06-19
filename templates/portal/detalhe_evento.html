@@ -1,0 +1,56 @@
+{% extends 'portal/base.html' %}
+{% block title %}{{ evento.titulo }} — ALL IN SAQUA{% endblock %}
+
+{% block content %}
+<div class="container page-content">
+    <a href="{% url 'eventos' %}" class="back-link">&larr; Voltar ao calendário</a>
+
+    <div class="detalhe-hero">
+        {% if evento.imagem %}
+            <div class="evento-hero-imagem" style="background-image: url('{{ evento.imagem.url }}')">
+                <img src="{{ evento.imagem.url }}" alt="{{ evento.titulo }}" loading="lazy">
+            </div>
+        {% endif %}
+        <div class="titulo-row">
+            <h1>{{ evento.titulo }}</h1>
+        </div>
+        <div class="evento-meta">
+            {% if evento.data_evento %}
+            <span class="evento-meta-item">📅 {{ evento.data_evento|date:"d \d\e F \d\e Y" }}</span>
+            {% endif %}
+            {% if evento.local %}
+            <span class="evento-meta-item">📍 {{ evento.local }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detalhe-corpo">
+        {% if evento.descricao %}
+            <div class="rich-text">{{ evento.descricao|linebreaks }}</div>
+        {% elif evento.descricao_curta %}
+            <p>{{ evento.descricao_curta }}</p>
+        {% endif %}
+
+        {% if evento.link_externo %}
+            <a href="{{ evento.link_externo }}" target="_blank" class="botao">Site oficial / ingressos &raquo;</a>
+        {% endif %}
+    </div>
+
+    {% if evento.local %}
+    <div class="evento-mapa-section">
+        <h2>🗺️ Como chegar</h2>
+        <div class="mapa-container">
+            <iframe
+                src="https://maps.google.com/maps?q={{ evento.local|urlencode }}&output=embed"
+                width="100%" height="360" style="border:0; border-radius:8px;"
+                allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ evento.local|urlencode }}"
+           target="_blank" class="botao botao-grande" style="margin-top:16px;">
+            🧭 Traçar rota no Google Maps
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

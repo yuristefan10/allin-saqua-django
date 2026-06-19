@@ -28,6 +28,24 @@ def index(request):
     })
 
 
+def eventos(request):
+    from django.utils import timezone
+    hoje = timezone.now().date()
+    proximos = Evento.objects.filter(data_evento__gte=hoje).order_by('data_evento')
+    passados = Evento.objects.filter(data_evento__lt=hoje).order_by('-data_evento')
+    sem_data = Evento.objects.filter(data_evento__isnull=True).order_by('titulo')
+    return render(request, 'portal/eventos.html', {
+        'proximos': proximos,
+        'passados': passados,
+        'sem_data': sem_data,
+    })
+
+
+def detalhe_evento(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    return render(request, 'portal/detalhe_evento.html', {'evento': evento})
+
+
 def sobre(request):
     return render(request, 'portal/sobre.html')
 

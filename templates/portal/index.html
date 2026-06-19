@@ -28,7 +28,7 @@
         <div class="home-main">
             <h2>O QUE ESTÁ ROLANDO</h2>
             {% if evento_destaque %}
-                <div class="evento-hero">
+                <a href="{% url 'detalhe_evento' evento_destaque.pk %}" class="evento-hero evento-hero--link">
                     {% if evento_destaque.imagem %}
                         <div class="evento-hero-imagem" style="background-image: url('{{ evento_destaque.imagem.url }}')">
                             <img src="{{ evento_destaque.imagem.url }}" alt="{{ evento_destaque.titulo }}" loading="lazy">
@@ -42,21 +42,22 @@
                         {% if evento_destaque.data_evento %}
                             <p class="evento-data">📅 {{ evento_destaque.data_evento|date:"d \d\e F \d\e Y" }}</p>
                         {% endif %}
+                        {% if evento_destaque.local %}
+                            <p class="evento-data">📍 {{ evento_destaque.local }}</p>
+                        {% endif %}
                         {% if evento_destaque.descricao_curta %}
                             <p class="evento-desc">{{ evento_destaque.descricao_curta }}</p>
                         {% endif %}
-                        {% if evento_destaque.link_externo %}
-                            <a href="{{ evento_destaque.link_externo }}" target="_blank" class="botao">Saiba mais &raquo;</a>
-                        {% endif %}
+                        <span class="botao">Ver detalhes &raquo;</span>
                     </div>
-                </div>
+                </a>
             {% endif %}
 
             {% if outros_eventos %}
                 <div class="eventos-lista">
                     <h4 class="eventos-lista-titulo">Próximos eventos</h4>
                     {% for ev in outros_eventos %}
-                    <div class="evento-banner-item">
+                    <a href="{% url 'detalhe_evento' ev.pk %}" class="evento-banner-item">
                         {% if ev.imagem %}
                             <img src="{{ ev.imagem.url }}" alt="{{ ev.titulo }}" class="evento-banner-thumb" loading="lazy">
                         {% else %}
@@ -66,10 +67,10 @@
                             <h5>{{ ev.titulo }}</h5>
                             {% if ev.data_evento %}<span class="evento-data-sm">📅 {{ ev.data_evento|date:"d/m/Y" }}</span>{% endif %}
                             {% if ev.descricao_curta %}<p>{{ ev.descricao_curta|truncatechars:80 }}</p>{% endif %}
-                            {% if ev.link_externo %}<a href="{{ ev.link_externo }}" target="_blank" class="botao-link">Ver evento &raquo;</a>{% endif %}
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
+                    <a href="{% url 'eventos' %}" class="botao botao-outline botao-block" style="margin-top:8px;">Ver calendário completo &raquo;</a>
                 </div>
             {% endif %}
 

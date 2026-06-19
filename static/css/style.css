@@ -290,6 +290,33 @@ img { max-width: 100%; height: auto; display: block; }
 .evento-data-sm { font-size: .75rem; color: var(--azul); font-weight: 600; display: block; margin-bottom: 3px; }
 .evento-banner-info p { font-size: .78rem; color: #777; line-height: 1.4; margin-bottom: 4px; }
 
+/* ── Página de Eventos ── */
+.eventos-secao-titulo { font-size: 1.3rem; color: var(--azul-escuro); margin: 32px 0 16px; }
+.eventos-secao-titulo.eventos-passados { color: #888; }
+.eventos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.evento-card { display: flex; flex-direction: column; background: var(--branco); border-radius: 12px; overflow: hidden; box-shadow: var(--sombra); transition: transform .2s; }
+.evento-card:hover { transform: translateY(-4px); text-decoration: none; }
+.evento-card--passado { opacity: .65; }
+.evento-card-img { position: relative; height: 160px; }
+.evento-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.evento-card-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, var(--azul-escuro), var(--azul)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+.evento-card-data { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,.95); border-radius: 8px; padding: 6px 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); line-height: 1; }
+.evento-card-data .dia { display: block; font-size: 1.4rem; font-weight: 700; color: var(--azul-escuro); }
+.evento-card-data .mes { display: block; font-size: .72rem; text-transform: uppercase; color: var(--azul); font-weight: 600; }
+.evento-card-body { padding: 14px 16px; flex: 1; }
+.evento-card-body h3 { font-size: 1.05rem; color: var(--texto); margin-bottom: 6px; }
+.evento-card-local { font-size: .82rem; color: var(--azul); font-weight: 600; margin-bottom: 6px; }
+.evento-card-desc { font-size: .85rem; color: #666; line-height: 1.5; }
+
+/* ── Detalhe do evento ── */
+.evento-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+.evento-meta-item { font-size: .95rem; color: var(--azul); font-weight: 600; }
+.evento-mapa-section { border-top: 2px solid var(--cinza-medio); padding-top: 32px; margin-top: 32px; }
+.evento-mapa-section h2 { margin-bottom: 16px; color: var(--azul-escuro); }
+.evento-hero--link { display: block; }
+.evento-hero--link:hover { text-decoration: none; }
+.evento-hero--link .evento-hero-body h3 { color: var(--azul-escuro); }
+
 /* ── Busca ── */
 .busca-form { margin-bottom: 20px; }
 .busca-bar { display: flex; gap: 8px; flex-wrap: wrap; }
